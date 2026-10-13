@@ -31,6 +31,7 @@ function Inner({ onExit }: { onExit: () => void }) {
   const [hint, setHint] = useState(false);
   const [snd, setSnd] = useState(false);
   const [intro, setIntro] = useState(!s.started);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => () => stopAmbient(), []);
   useEffect(() => { if (screen === 'insights') clearFresh(); }, [screen]); // eslint-disable-line
@@ -80,7 +81,25 @@ function Inner({ onExit }: { onExit: () => void }) {
         <Toasts />
         {evOpen && <EvidenceModal id={evOpen} onClose={() => setEvOpen(null)} />}
         {hint && <HintModal onClose={() => setHint(false)} />}
-        {snd && <Modal title="Звук и эффекты" onClose={() => setSnd(false)}><SoundPanel /></Modal>}
+        {snd && (
+          <Modal title="Настройки и дело" onClose={() => setSnd(false)}>
+            <SoundPanel />
+            <div className="c2-sec">Дело</div>
+            <div className="c2-row wrap">
+              <button className="c2-btn" onClick={() => { setSnd(false); setIntro(true); }}>Показать обложку</button>
+              <button className="c2-btn danger" onClick={() => setConfirmReset(true)}>Начать дело заново</button>
+            </div>
+          </Modal>
+        )}
+        {confirmReset && (
+          <Modal title="Начать дело заново?" onClose={() => setConfirmReset(false)}>
+            <p>Будет стёрт прогресс только этого дела: улики, допросы, инсайты, доска и заметки. Первое дело не затрагивается.</p>
+            <div className="c2-row end">
+              <button className="c2-btn ghost" onClick={() => setConfirmReset(false)}>Отмена</button>
+              <button className="c2-btn danger" onClick={() => { reset(); setConfirmReset(false); setSnd(false); setScreen('hub'); setIntro(true); }}>Стереть</button>
+            </div>
+          </Modal>
+        )}
       </div>
     </NavCtx2.Provider>
   );

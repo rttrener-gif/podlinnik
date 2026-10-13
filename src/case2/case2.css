@@ -204,3 +204,5 @@
 .c2-qbtn:hover { border-color: var(--acc); } .c2-qbtn small { display: block; color: var(--mu); }
 .c2-qbadge { position: absolute; right: 8px; top: 8px; background: var(--red); border-radius: 999px; padding: 0 7px; font-size: 12px; }
 @media (min-width: 900px) { .c2-quick { display: none; } }
+
+.c2-goal { background: #1a1f27; border: 1px solid var(--line); border-left: 4px solid var(--acc); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }

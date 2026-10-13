@@ -45,7 +45,7 @@ export function EvThumb({ id, onClick, mark }: { id: string; onClick?: () => voi
   const e = EV[id];
   const { s } = useC2();
   if (!e) return null;
-  const isNew = s.freshEv.includes(id) || !s.seen.includes(id);
+  const isNew = !s.seen.includes(id);
   return (
     <button className={'c2-thumb' + (isNew ? ' new' : '')} onClick={() => { sfx('click'); onClick?.(); }} title={e.title}>
       <div className="c2-thumb-art"><ItemArt art={e.art} lines={e.lines} id={'t' + id} /></div>

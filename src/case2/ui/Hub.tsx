@@ -1,4 +1,4 @@
-import { useC2 } from '../state';
+import { useC2, currentHint } from '../state';
 import { useNav2 } from './nav';
 import type { Screen } from './nav';
 import { sfx } from '../audio';
@@ -13,6 +13,7 @@ export function Hub() {
   const newEv = s.ev.filter((e) => !s.seen.includes(e)).length;
   const openReq = REQUESTS2.filter((r) => !s.reqs.includes(r.id) && cond(r.when)).length;
   const msgs = s.events.length;
+  const goal = currentHint(s).goal;
 
   const objs: Obj[] = [
     { id: 'board', label: 'Доска', sub: 'связи и выводы', x: 30, y: 30, w: 360, h: 250, draw: () => (
@@ -49,6 +50,7 @@ export function Hub() {
 
   return (
     <div className="c2-hub">
+      <div className="c2-goal"><b>Текущая задача.</b> {goal}</div>
       <svg viewBox="0 0 880 640" className="c2-desk" role="group" aria-label="Рабочий стол следователя">
         <defs>
           <linearGradient id="deskg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#201a15" /><stop offset="1" stopColor="#0d0b09" /></linearGradient>

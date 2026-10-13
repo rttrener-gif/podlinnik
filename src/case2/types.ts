@@ -142,6 +142,7 @@ export interface HintDef {
   id: string;
   when: Cond;
   done: Cond; // подсказка больше не актуальна
+  goal: string; // текущая задача (без спойлеров)
   l1: string;
   l2: string;
   l3: string;
