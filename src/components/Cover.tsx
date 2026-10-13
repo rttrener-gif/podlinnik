@@ -4,7 +4,7 @@ import { CASE } from '../content';
 import { CoverArt } from './Art';
 import { Confirm } from './common';
 
-export function Cover({ onEnter }: { onEnter: () => void }) {
+export function Cover({ onEnter, onExit }: { onEnter: () => void; onExit?: () => void }) {
   const { state, start, reset, progress } = useGame();
   const [confirm, setConfirm] = useState(false);
 
@@ -48,6 +48,11 @@ export function Cover({ onEnter }: { onEnter: () => void }) {
           >
             {state.started ? 'Продолжить расследование' : 'Начать расследование'}
           </button>
+          {onExit && (
+            <button className="btn ghost" onClick={onExit}>
+              ← К выбору дела
+            </button>
+          )}
           {state.started && (
             <button className="btn ghost" onClick={() => setConfirm(true)}>
               Начать дело заново

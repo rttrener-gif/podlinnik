@@ -21,13 +21,10 @@ import '@fontsource/ibm-plex-sans/latin-400.css';
 import '@fontsource/ibm-plex-sans/latin-600.css';
 import '@fontsource/caveat/latin-400.css';
 import './styles.css';
-import { App } from './App';
-import { GameProvider } from './game/store';
+import { Root } from './Root';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <GameProvider>
-      <App />
-    </GameProvider>
+    <Root />
   </React.StrictMode>,
 );

@@ -23,7 +23,7 @@ const NAV: { id: ViewId; label: string; hint: string }[] = [
   { id: 'accuse', label: 'Обвинение', hint: 'финал' },
 ];
 
-export function App() {
+export function App({ onExit }: { onExit?: () => void } = {}) {
   const g = useGame();
   const { state, progress, has, cond } = g;
   const [screen, setScreen] = useState<'cover' | 'game'>('cover');
@@ -50,7 +50,7 @@ export function App() {
   );
 
   if (screen === 'cover' || !state.started) {
-    return <Cover onEnter={() => setScreen('game')} />;
+    return <Cover onEnter={() => setScreen('game')} onExit={onExit} />;
   }
 
   const unread = ALL_DOCS.filter((d) => has(d.id) && !state.seen.includes(d.id)).length;
