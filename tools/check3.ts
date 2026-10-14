@@ -1,5 +1,5 @@
 import { fresh, settle } from '../src/case3/state';
-import { answerQuestion, presentEvidence, check, pairKey } from '../src/case3/engine';
+import { answerMenu, buildMenu, presentEvidence, check, pairKey } from '../src/case3/engine';
 import { EVIDENCE3, EV3 } from '../src/case3/data/all';
 import { ACTIONS3 } from '../src/case3/data/actions';
 import { INSIGHTS3, HINTS3, TIMELINE3 } from '../src/case3/data/rules';
@@ -20,10 +20,10 @@ for (let r = 0; r < 30; r++) {
   for (const a of ACTIONS3) if (!s.acts.includes(a.id) && check(a.when, s)) s = { ...s, acts: [...s.acts, a.id], ev: Array.from(new Set([...s.ev, ...a.gives])) };
   // допросы: каждый ключевой термин каждой темы + все улики
   for (const iv of IV3) {
-    for (const t of iv.topics) for (const k of t.kw) {
-      const rep = answerQuestion(iv, k, s, 0);
-      if (rep.kind === 'fallback') continue;
-      s = { ...s, flags: Array.from(new Set([...s.flags, ...rep.sets])), ev: Array.from(new Set([...s.ev, ...rep.gives])), asked: Array.from(new Set([...s.asked, rep.key])) };
+    for (const m of buildMenu(iv, s)) {
+      const rep = answerMenu(iv, m.id, s);
+      if (!rep) { err(`menu item without answer ${iv.person}.${m.id}`); continue; }
+      s = { ...s, flags: Array.from(new Set([...s.flags, ...rep.sets])), ev: Array.from(new Set([...s.ev, ...rep.gives])), asked: Array.from(new Set([...s.asked, rep.key])), lastAns: { ...s.lastAns, [rep.key]: rep.idx } };
     }
     for (const e of s.ev) {
       const rep = presentEvidence(iv, e, s);
@@ -46,6 +46,9 @@ for (const t of TIMELINE3) for (const src of t.src) if (!EV3[src]) err('tl src '
 // ранний доступ: на старте не должно быть слишком много действий
 const st0 = settle(fresh());
 const open0 = ACTIONS3.filter((a) => check(a.when, st0));
+// на старте у каждого персонажа есть вопросы, но нет вопросов со ссылкой на непросмотренные улики
+const st1 = settle(fresh());
+for (const iv of IV3) { const m = buildMenu(iv, st1); console.log('вопросов на старте', iv.person, m.length); }
 console.log('действий на старте:', open0.length, open0.map((a) => a.id).join(', '));
 
 const good = judge3({ ans: { cause: 'oral', who: 'orekhova', others: 'two', nurse: 'neglect', doctor: 'two', rakh: 'theft', money: 'none', motive: 'mercy' }, evidence: ['tox-deep', 'cctv', 'rx-trace', 'search-orekhova'], rejected: ['a-nurse', 'a-inject', 'a-annuity', 'a-timur', 'a-hallu'], summary: '' });

@@ -105,7 +105,7 @@ export interface S3 {
   pairs: string[];
   ins: { id: string; at: number }[];
   freshIns: string[];
-  log: { id: string; person: string; q: string; a: string; tone: Tone; at: number; kind: 'ask' | 'show' }[];
+  log: { id: string; person: string; q: string; a: string; tone: Tone; at: number; kind: 'ask' | 'show'; qid?: string; key?: string }[];
   hints: Record<string, number>;
   board: Record<string, { x: number; y: number }>;
   links: { id: string; a: string; b: string; label: string; status: 'hyp' | 'ok' }[];

@@ -5,7 +5,7 @@ import { EV3 } from '../data/all';
 import { useC3 } from '../state';
 import { Portrait3 } from '../art/Portrait3';
 import { Modal, TONE_RU } from './Common';
-import { check } from '../engine';
+import { check, buildMenu } from '../engine';
 
 export function PeopleScreen({ id, setId }: { id: string | null; setId: (id: string | null) => void }) {
   const { s } = useC3();
@@ -18,7 +18,8 @@ export function PeopleScreen({ id, setId }: { id: string | null; setId: (id: str
         <ul className="c3-items">
           {visible.map((p) => (
             <li key={p.id}><button className={'c3-person' + (id === p.id ? ' act' : '')} onClick={() => setId(p.id)}>
-              <Portrait3 id={p.id} size={48} /><span><b>{p.name}</b><small>{p.role}</small></span></button></li>
+              <Portrait3 id={p.id} size={48} /><span><b>{p.name}</b><small>{p.role}</small></span>
+              {IV3M[p.id] && (() => { const n = buildMenu(IV3M[p.id], s).filter((m) => !m.asked).length; return n > 0 ? <span className="c3-badge" title="Вопросов, которые вы ещё не задавали">{n}</span> : null; })()}</button></li>
           ))}
         </ul>
       </aside>
@@ -33,15 +34,25 @@ function PersonPage({ id, back }: { id: string; back: () => void }) {
   const p = P3[id];
   const iv = IV3M[id];
   const { s, ask, show, hint } = useC3();
-  const [q, setQ] = useState('');
   const [pick, setPick] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [hl, setHl] = useState<string | null>(null);
   const [showHints, setShowHints] = useState(false);
   const end = useRef<HTMLDivElement>(null);
   const log = s.log.filter((l) => l.person === id);
   useEffect(() => { end.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [log.length]);
 
-  const submit = () => { if (q.trim()) { ask(id, q.trim()); setQ(''); } };
+  const menu = iv ? buildMenu(iv, s) : [];
+  const groups = Array.from(new Set(menu.map((m) => m.group)));
+  const choose = (qid: string) => {
+    const r = ask(id, qid);
+    if (r === 'repeat') {
+      const prev = [...log].reverse().find((l) => l.qid === qid);
+      setHl(prev?.id ?? null);
+      setNote('Ответ на этот вопрос уже получен — он выделен в записи допроса выше.');
+      window.setTimeout(() => { setNote(null); setHl(null); }, 6000);
+    }
+  };
   const open = iv ? iv.hints.filter((h) => check(h.when, s) && !check(h.done, s)) : [];
   const h = open[0];
   const lv = h ? s.hints[`${id}.${h.id}`] ?? 0 : 0;
@@ -59,7 +70,7 @@ function PersonPage({ id, back }: { id: string; back: () => void }) {
           <div className="c3-ivlog">
             <p className="c3-intro">{iv.intro}</p>
             {log.map((l) => (
-              <div key={l.id} className="c3-turn">
+              <div key={l.id} className={'c3-turn' + (hl === l.id ? ' hl' : '')}>
                 <div className={'c3-q' + (l.kind === 'show' ? ' show' : '')}><span className="c3-who">Следователь</span>{l.q}</div>
                 <div className="c3-a"><span className="c3-who">{p.short}{l.tone ? ' · ' + (TONE_RU[l.tone] ?? '') : ''}</span>{l.a}</div>
               </div>
@@ -67,10 +78,19 @@ function PersonPage({ id, back }: { id: string; back: () => void }) {
             <div ref={end} />
           </div>
           <div className="c3-ask">
-            <textarea className="c3-inp" rows={2} placeholder="Сформулируйте вопрос своими словами: где вы были, что вы знаете о…, почему в вашем показании…" value={q} onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }} />
+            {groups.map((g) => (
+              <div key={g} className="c3-qgroup">
+                <div className="c3-sec">{g}</div>
+                {menu.filter((m) => m.group === g).map((m) => (
+                  <button key={m.id} className={'c3-qbtn' + (m.asked ? ' asked' : '')} onClick={() => choose(m.id)}>
+                    <span>{m.label}</span>
+                    {m.asked && <small>{m.stale ? 'задан ранее · ответ может измениться' : 'задан'}</small>}
+                  </button>
+                ))}
+              </div>
+            ))}
+            {menu.length === 0 && <p className="c3-muted">Сейчас вопросов нет. Изучайте материалы, чтобы появились новые направления допроса.</p>}
             <div className="c3-row">
-              <button className="c3-btn primary" onClick={submit} disabled={!q.trim()}>Задать вопрос</button>
               <button className="c3-btn" onClick={() => setPick(true)}>Предъявить материал…</button>
               <span className="c3-spacer" />
               <button className="c3-btn ghost" onClick={() => setShowHints((v) => !v)}>Мне нужна подсказка</button>

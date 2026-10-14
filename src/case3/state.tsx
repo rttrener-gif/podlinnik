@@ -5,7 +5,8 @@ import { START3, EV3 } from './data/all';
 import { ACTIONS3 } from './data/actions';
 import { INSIGHTS3, HINTS3 } from './data/rules';
 import { IV3M } from './data/interviews';
-import { answerQuestion, check, pairKey, presentEvidence } from './engine';
+import { answerMenu, check, pairKey, presentEvidence } from './engine';
+import { MENU } from './data/menu';
 
 const KEY = 'tikho.case3.save.v1';
 const VER = 1;
@@ -46,7 +47,7 @@ export interface Api3 {
   start: () => void;
   reset: () => void;
   view: (id: string) => void;
-  ask: (person: string, q: string) => void;
+  ask: (person: string, qid: string) => 'new' | 'repeat' | 'dup';
   show: (person: string, ev: string) => 'new' | 'dup';
   act: (id: string) => void;
   pair: (a: string, b: string) => void;
@@ -86,22 +87,22 @@ export function Case3Provider({ children }: { children: ReactNode }) {
       start: () => upd((x) => (x.started ? x : { ...x, started: true })),
       reset: () => { try { localStorage.removeItem(KEY); } catch { /* */ } setS(settle(fresh())); },
       view: (id) => upd((x) => (x.seen.includes(id) ? x : { ...x, seen: [...x.seen, id] })),
-      ask: (person, q) => upd((x) => {
+      ask: (person, qid) => {
         const iv = IV3M[person];
-        if (!iv || !q.trim()) return x;
-        const fb = x.lastAns['__fb' + person] ?? 0;
-        const r = answerQuestion(iv, q, x, fb);
-        let n: S3 = x;
-        let text = r.text;
-        let tone: Tone = r.tone;
-        if (r.kind === 'fallback') n = { ...n, lastAns: { ...n.lastAns, ['__fb' + person]: fb + 1 } };
-        else if (r.repeat) { const reps = ['Я уже отвечал на этот вопрос.', 'Я ответил. Если у вас есть что-то новое — покажите.', 'Мне нечего добавить к сказанному. Спросите о чём-то другом или предъявите материал.']; text = reps[x.log.length % reps.length]; tone = 'guarded'; }
-        else {
-          n = { ...n, asked: n.asked.includes(r.key) ? n.asked : [...n.asked, r.key], lastAns: { ...n.lastAns, [r.key]: r.idx } };
-          n = addFlags(n, r.sets); n = addEv(n, r.gives);
-        }
-        return { ...n, log: [...n.log, { id: uid(), person, q, a: text, tone, at: Date.now(), kind: 'ask' }] };
-      }),
+        if (!iv) return 'dup';
+        const r = answerMenu(iv, qid, s);
+        if (!r) return 'dup';
+        if (r.repeat) return 'repeat';
+        upd((x) => {
+          const rr = answerMenu(iv, qid, x);
+          if (!rr || rr.repeat) return x;
+          let n: S3 = { ...x, asked: x.asked.includes(rr.key) ? x.asked : [...x.asked, rr.key], lastAns: { ...x.lastAns, [rr.key]: rr.idx } };
+          n = addFlags(n, rr.sets); n = addEv(n, rr.gives);
+          const label = qid.startsWith('ev:') ? `Что вы можете сказать о материале «${EV3[qid.slice(3)]?.title ?? ''}»?` : (MENU[person] ?? []).find((m) => m.id === qid)?.q ?? qid;
+          return { ...n, log: [...n.log, { id: uid(), person, q: label, a: rr.text, tone: rr.tone, at: Date.now(), kind: 'ask', qid, key: rr.key }] };
+        });
+        return 'new';
+      },
       show: (person, evId) => {
         const iv = IV3M[person];
         if (!iv) return 'dup';
