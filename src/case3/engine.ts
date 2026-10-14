@@ -71,6 +71,11 @@ export function answerQuestion(iv: Interview3, q: string, s: S3, fallbackCount: 
     const p = pickAns(t.ans, s, false);
     if (p) return mk(p.a, p.idx, `${iv.person}.${t.id}`, s, 'topic');
   }
+  if (/расскаж|что произошло|что вы знаете|что случилось/.test(nq)) {
+    const t = iv.topics.find((x) => x.id === 'night') ?? iv.topics[0];
+    const p = t ? pickAns(t.ans, s, false) : null;
+    if (t && p) return mk(p.a, p.idx, `${iv.person}.${t.id}`, s, 'topic');
+  }
   const f = iv.fallback[fallbackCount % iv.fallback.length];
   return { text: f, tone: 'guarded', sets: [], gives: [], key: '', idx: -1, repeat: false, kind: 'fallback' };
 }
@@ -81,7 +86,8 @@ export function presentEvidence(iv: Interview3, evId: string, s: S3): Reply {
   if (!list) {
     return { text: iv.unknown, tone: 'calm', sets: [], gives: [], key: `${iv.person}.ev:${evId}`, idx: 0, repeat: s.shown.includes(`${iv.person}.${evId}`), kind: 'know' };
   }
-  const p = pickAns(list, s, true)!;
+  const p = pickAns(list, s, true);
+  if (!p) return { text: iv.unknown, tone: 'calm', sets: [], gives: [], key: `${iv.person}.ev:${evId}`, idx: 0, repeat: false, kind: 'know' };
   return mk(p.a, p.idx, `${iv.person}.ev:${evId}`, s, 'know', true);
 }
 
