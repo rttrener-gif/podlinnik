@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { App } from './App';
 import { GameProvider } from './game/store';
 import { Case2App } from './case2/Case2App';
+import { Case3App } from './case3/Case3App';
 import { CoverArt } from './components/Art';
 import { SceneArt } from './case2/art/Scenes';
 
-type Sel = 'select' | 'case1' | 'case2';
+type Sel = 'select' | 'case1' | 'case2' | 'case3';
 
 function status(key: string, kind: 1 | 2): string {
   try {
@@ -27,6 +28,7 @@ export function Root() {
 
   if (sel === 'case1') return <GameProvider><App onExit={() => go('select')} /></GameProvider>;
   if (sel === 'case2') return <Case2App onExit={() => go('select')} />;
+  if (sel === 'case3') return <Case3App onExit={() => go('select')} />;
 
   return (
     <div className="hub-select">
@@ -52,6 +54,15 @@ export function Root() {
             <h2>ТИХО-ТИХО</h2>
             <p>Исчезновение из запертой студии. Фотографии, камеры, телефон, голоса, инсайты, подсказки и реконструкция.</p>
             <span className="hs-status">{status('tikho.case2.save.v1', 2)}</span>
+          </div>
+        </button>
+        <button className="hs-card hs-card3" onClick={() => go('case3')}>
+          <div className="hs-art hs-art3"><span>25-0629</span></div>
+          <div className="hs-body">
+            <span className="hs-no">Дело № 25-0629 · новое</span>
+            <h2>ТИХАЯ ГАВАНЬ</h2>
+            <p>Серия смертей в частном пансионате. Свободные допросы, поэтапные экспертизы, цифровые следы и рабочие версии. Без озвучки, с упором на текст и данные.</p>
+            <span className="hs-status">{status('tikho.case3.save.v1', 2)}</span>
           </div>
         </button>
       </div>
